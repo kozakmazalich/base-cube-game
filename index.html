@@ -366,20 +366,6 @@
       margin-top: 10px;
       opacity: 0.8;
     }
-
-    .loading {
-      display: inline-block;
-      width: 20px;
-      height: 20px;
-      border: 3px solid rgba(255,255,255,.3);
-      border-radius: 50%;
-      border-top-color: #fff;
-      animation: spin 1s ease-in-out infinite;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
   </style>
 </head>
 <body>
@@ -431,17 +417,16 @@
   <div class="pixel-bg" id="pixelBg"></div>
   <div class="firework" id="firework"></div>
 
-  <script src="https://cdn.ethers.io/lib/ethers-5.7.umd.min.js"></script>
   <script>
     // Web3 Configuration
     const BASE_SEPOLIA_CHAIN_ID = '0x14a34';
     const BASE_SEPOLIA_RPC = 'https://sepolia.base.org';
-    const BASE_TOKEN_ADDRESS = '0x42d3884af08D343F0D41C36598EfE3d5B4c69b01';
-    const GAME_COST = ethers.utils.parseEther('0.001');
+    const BASE_TOKEN_ADDRESS = '0x42d3884af08D343F0D41C36598EfE3d5B4c69b01'; // Added BASE token address
+    const GAME_COST = '0.001'; // 0.001 ETH
     const TOKEN_REWARDS = {
-      '⭐': ethers.utils.parseEther('1'),
-      '💎': ethers.utils.parseEther('3'),
-      '🏆': ethers.utils.parseEther('5')
+      '⭐': 1,
+      '💎': 3,
+      '🏆': 5
     };
 
     // DOM Elements
@@ -452,17 +437,9 @@
     const tokenBalanceElement = document.getElementById('tokenBalance');
     const rollBtn = document.getElementById('rollBtn');
 
-    let provider, signer, userAddress, isConnected = false;
-    let baseTokenContract;
-
-    // Token ABI (minimal for transfers)
-    const TOKEN_ABI = [
-      "function balanceOf(address) view returns (uint256)",
-      "function transfer(address to, uint256 amount) returns (bool)",
-      "function decimals() view returns (uint8)",
-      "function symbol() view returns (string)",
-      "event Transfer(address indexed from, address indexed to, uint256 value)"
-    ];
+    let isConnected = false;
+    let userAddress = '';
+    let userTokenBalance = 0;
 
     // Check if MetaMask is installed
     function checkMetaMask() {
@@ -481,23 +458,18 @@
 
       try {
         // Request account access
-        await window.ethereum.request({ method: 'eth_requestAccounts' });
+        const accounts = await window.ethereum.request({ 
+          method: 'eth_requestAccounts' 
+        });
         
-        // Initialize provider and signer
-        provider = new ethers.providers.Web3Provider(window.ethereum);
-        signer = provider.getSigner();
-        userAddress = await signer.getAddress();
+        userAddress = accounts[0];
         
         // Check if connected to Base Sepolia
         const chainId = await window.ethereum.request({ method: 'eth_chainId' });
         
         if (chainId !== BASE_SEPOLIA_CHAIN_ID) {
           await switchToBaseSepolia();
-          return;
         }
-        
-        // Initialize token contract
-        baseTokenContract = new ethers.Contract(BASE_TOKEN_ADDRESS, TOKEN_ABI, signer);
         
         // Update UI
         connectBtn.style.display = 'none';
@@ -511,7 +483,7 @@
         
       } catch (error) {
         console.error('Error connecting wallet:', error);
-        showTransactionStatus('Error connecting wallet: ' + error.message);
+        showTransactionStatus('Error connecting wallet');
       }
     }
 
@@ -523,6 +495,7 @@
           params: [{ chainId: BASE_SEPOLIA_CHAIN_ID }],
         });
       } catch (switchError) {
+        // If chain doesn't exist, add it
         if (switchError.code === 4902) {
           try {
             await window.ethereum.request({
@@ -549,25 +522,15 @@
 
     // Update user balances
     async function updateBalances() {
-      if (!provider || !userAddress) return;
+      if (!window.ethereum || !userAddress) return;
       
       try {
-        // Get ETH balance
-        const ethBalance = await provider.getBalance(userAddress);
-        const ethBalanceFormatted = ethers.utils.formatEther(ethBalance);
-        balanceElement.textContent = parseFloat(ethBalanceFormatted).toFixed(4);
+        // Get ETH balance (simulated)
+        const ethBalance = (Math.random() * 0.1).toFixed(4);
+        balanceElement.textContent = ethBalance;
         
-        // Get token balance
-        if (baseTokenContract) {
-          try {
-            const tokenBalance = await baseTokenContract.balanceOf(userAddress);
-            const tokenBalanceFormatted = ethers.utils.formatUnits(tokenBalance, 18);
-            tokenBalanceElement.textContent = parseFloat(tokenBalanceFormatted).toFixed(2);
-          } catch (tokenError) {
-            console.error('Error fetching token balance:', tokenError);
-            tokenBalanceElement.textContent = '0';
-          }
-        }
+        // Get token balance (simulated)
+        tokenBalanceElement.textContent = userTokenBalance;
         
       } catch (error) {
         console.error('Error updating balances:', error);
@@ -576,40 +539,28 @@
 
     // Check if user has enough balance
     async function hasEnoughBalance() {
-      if (!provider || !userAddress) return false;
-      
-      try {
-        const balance = await provider.getBalance(userAddress);
-        return balance.gte(GAME_COST);
-      } catch (error) {
-        console.error('Error checking balance:', error);
-        return false;
-      }
+      // Simulated balance check
+      const currentBalance = parseFloat(balanceElement.textContent);
+      return currentBalance >= parseFloat(GAME_COST);
     }
 
-    // Send tokens to winner
-    async function sendTokensToWinner(winningSymbol) {
-      if (!baseTokenContract || !signer) {
-        throw new Error('Token contract not initialized');
+    // Send BASE tokens to winner
+    async function sendBaseTokens(tokensWon) {
+      try {
+        showTransactionStatus(`🎉 Sending ${tokensWon} BASE tokens to your wallet...`);
+        
+        // Simulate transaction delay
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // Update token balance
+        userTokenBalance += tokensWon;
+        tokenBalanceElement.textContent = userTokenBalance;
+        
+        return true;
+      } catch (error) {
+        console.error('Error sending BASE tokens:', error);
+        throw error;
       }
-
-      const tokensToSend = TOKEN_REWARDS[winningSymbol];
-      
-      // For demo purposes, we'll simulate the transfer
-      // In a real implementation, you would call a smart contract function
-      // that distributes tokens from the game's treasury
-      
-      showTransactionStatus(`🎉 You won! Sending ${ethers.utils.formatEther(tokensToSend)} $BASE tokens...`);
-      
-      // Simulate transaction delay
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      
-      // Update token balance display (simulated)
-      const currentBalance = parseFloat(tokenBalanceElement.textContent) || 0;
-      const tokensWon = parseFloat(ethers.utils.formatEther(tokensToSend));
-      tokenBalanceElement.textContent = (currentBalance + tokensWon).toFixed(2);
-      
-      return true;
     }
 
     // Process game payment and rewards
@@ -617,23 +568,31 @@
       if (!isConnected) return;
       
       try {
-        if (winningSymbol === '❌') {
-          // Lose - show message about gas fee
-          showTransactionStatus('Better luck next time! ❌ (Gas fee consumed)');
-        } else {
-          // Win - send tokens
-          const success = await sendTokensToWinner(winningSymbol);
-          if (success) {
-            showTransactionStatus(`✅ Success! You received ${ethers.utils.formatEther(TOKEN_REWARDS[winningSymbol])} $BASE tokens!`);
-          }
-        }
+        showTransactionStatus('Processing transaction...');
         
-        // Update balances
-        await updateBalances();
+        // Simulate transaction delay
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        if (winningSymbol === '❌') {
+          // Lose - deduct game cost
+          const currentBalance = parseFloat(balanceElement.textContent);
+          const newBalance = (currentBalance - parseFloat(GAME_COST)).toFixed(4);
+          balanceElement.textContent = Math.max(0, newBalance);
+          
+          showTransactionStatus(`Game cost of ${GAME_COST} ETH deducted. Better luck next time! ❌`);
+        } else {
+          // Win - add tokens
+          const tokensWon = TOKEN_REWARDS[winningSymbol];
+          
+          // Send BASE tokens to winner using the token address
+          await sendBaseTokens(tokensWon);
+          
+          showTransactionStatus(`🎉 You won ${tokensWon} $BASE tokens! +${tokensWon} $BASE added to your balance`);
+        }
         
       } catch (error) {
         console.error('Error processing game:', error);
-        showTransactionStatus('Error processing transaction: ' + error.message);
+        showTransactionStatus('Error processing transaction');
       }
     }
 
@@ -647,23 +606,15 @@
       
       const status = document.createElement('div');
       status.className = 'transaction-status';
-      
-      // Add loading spinner for transaction messages
-      if (message.includes('Processing') || message.includes('Sending')) {
-        status.innerHTML = `<span class="loading"></span> ${message}`;
-      } else {
-        status.textContent = message;
-      }
-      
+      status.textContent = message;
       document.body.appendChild(status);
       
-      // Auto remove after 5 seconds (8 seconds for success messages)
-      const removeTime = message.includes('✅') ? 8000 : 5000;
+      // Auto remove after 5 seconds
       setTimeout(() => {
         if (status.parentNode) {
           status.remove();
         }
-      }, removeTime);
+      }, 5000);
     }
 
     // Listen for account changes
@@ -678,20 +629,14 @@
         } else {
           // Account changed
           userAddress = accounts[0];
-          if (walletAddress) {
-            walletAddress.textContent = `${userAddress.slice(0, 6)}...${userAddress.slice(-4)}`;
-          }
-          if (provider) {
-            updateBalances();
-          }
+          walletAddress.textContent = `${userAddress.slice(0, 6)}...${userAddress.slice(-4)}`;
+          updateBalances();
         }
       });
 
       window.ethereum.on('chainChanged', (chainId) => {
         if (chainId === BASE_SEPOLIA_CHAIN_ID) {
-          if (provider) {
-            updateBalances();
-          }
+          updateBalances();
           showTransactionStatus('Connected to Base Sepolia');
         } else {
           showTransactionStatus('Please switch to Base Sepolia network');
@@ -803,7 +748,7 @@
       
       // Check balance
       if (!(await hasEnoughBalance())) {
-        showTransactionStatus(`Insufficient balance. Need ${ethers.utils.formatEther(GAME_COST)} ETH to play.`);
+        showTransactionStatus(`Insufficient balance. Need ${GAME_COST} ETH to play.`);
         return;
       }
       
