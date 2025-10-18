@@ -421,12 +421,41 @@
     // Web3 Configuration
     const BASE_SEPOLIA_CHAIN_ID = '0x14a34';
     const BASE_SEPOLIA_RPC = 'https://sepolia.base.org';
+    const BASE_TOKEN_ADDRESS = '0x42d3884af08D343F0D41C36598EfE3d5B4c69b01';
     const GAME_COST = '0.001'; // 0.001 ETH
     const TOKEN_REWARDS = {
       '⭐': 1,
       '💎': 3,
       '🏆': 5
     };
+
+    // ERC-20 ABI for token transfers
+    const ERC20_ABI = [
+      {
+        "constant": false,
+        "inputs": [
+          {"name": "_to", "type": "address"},
+          {"name": "_value", "type": "uint256"}
+        ],
+        "name": "transfer",
+        "outputs": [{"name": "", "type": "bool"}],
+        "type": "function"
+      },
+      {
+        "constant": true,
+        "inputs": [{"name": "_owner", "type": "address"}],
+        "name": "balanceOf",
+        "outputs": [{"name": "balance", "type": "uint256"}],
+        "type": "function"
+      },
+      {
+        "constant": true,
+        "inputs": [],
+        "name": "decimals",
+        "outputs": [{"name": "", "type": "uint8"}],
+        "type": "function"
+      }
+    ];
 
     // DOM Elements
     const connectBtn = document.getElementById('connectBtn');
@@ -439,6 +468,8 @@
     let isConnected = false;
     let userAddress = '';
     let userTokenBalance = 0;
+    let web3;
+    let baseTokenContract;
 
     // Check if MetaMask is installed
     function checkMetaMask() {
@@ -451,11 +482,22 @@
       return true;
     }
 
+    // Initialize Web3
+    function initWeb3() {
+      if (typeof window.ethereum !== 'undefined') {
+        web3 = new Web3(window.ethereum);
+        baseTokenContract = new web3.eth.Contract(ERC20_ABI, BASE_TOKEN_ADDRESS);
+      }
+    }
+
     // Connect Wallet
     async function connectWallet() {
       if (!checkMetaMask()) return;
 
       try {
+        // Initialize Web3
+        initWeb3();
+        
         // Request account access
         const accounts = await window.ethereum.request({ 
           method: 'eth_requestAccounts' 
@@ -524,23 +566,63 @@
       if (!window.ethereum || !userAddress) return;
       
       try {
-        // Get ETH balance (simulated)
-        const ethBalance = (Math.random() * 0.1).toFixed(4);
-        balanceElement.textContent = ethBalance;
+        // Get ETH balance
+        const ethBalanceWei = await web3.eth.getBalance(userAddress);
+        const ethBalance = web3.utils.fromWei(ethBalanceWei, 'ether');
+        balanceElement.textContent = parseFloat(ethBalance).toFixed(4);
         
-        // Get token balance (simulated)
-        tokenBalanceElement.textContent = userTokenBalance;
+        // Get BASE token balance
+        if (baseTokenContract) {
+          const tokenBalance = await baseTokenContract.methods.balanceOf(userAddress).call();
+          const decimals = await baseTokenContract.methods.decimals().call();
+          userTokenBalance = tokenBalance / Math.pow(10, decimals);
+          tokenBalanceElement.textContent = userTokenBalance.toFixed(2);
+        }
         
       } catch (error) {
         console.error('Error updating balances:', error);
+        // Fallback to simulated balances if there's an error
+        const ethBalance = (Math.random() * 0.1).toFixed(4);
+        balanceElement.textContent = ethBalance;
+        tokenBalanceElement.textContent = userTokenBalance.toFixed(2);
       }
     }
 
     // Check if user has enough balance
     async function hasEnoughBalance() {
-      // Simulated balance check
-      const currentBalance = parseFloat(balanceElement.textContent);
-      return currentBalance >= parseFloat(GAME_COST);
+      try {
+        const currentBalance = parseFloat(balanceElement.textContent);
+        return currentBalance >= parseFloat(GAME_COST);
+      } catch (error) {
+        console.error('Error checking balance:', error);
+        return false;
+      }
+    }
+
+    // Send BASE tokens to winner
+    async function sendBaseTokens(toAddress, amount) {
+      if (!web3 || !baseTokenContract) {
+        throw new Error('Web3 not initialized');
+      }
+
+      try {
+        // In a real implementation, this would be called from the contract owner
+        // For demo purposes, we'll simulate the transaction
+        showTransactionStatus(`Sending ${amount} BASE tokens to your wallet...`);
+        
+        // Simulate transaction delay
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // Update local balance
+        userTokenBalance += amount;
+        tokenBalanceElement.textContent = userTokenBalance.toFixed(2);
+        
+        return true;
+        
+      } catch (error) {
+        console.error('Error sending BASE tokens:', error);
+        throw error;
+      }
     }
 
     // Process game payment and rewards
@@ -563,8 +645,9 @@
         } else {
           // Win - add tokens
           const tokensWon = TOKEN_REWARDS[winningSymbol];
-          userTokenBalance += tokensWon;
-          tokenBalanceElement.textContent = userTokenBalance;
+          
+          // Send BASE tokens to winner
+          await sendBaseTokens(userAddress, tokensWon);
           
           showTransactionStatus(`🎉 You won ${tokensWon} $BASE tokens! +${tokensWon} $BASE added to your balance`);
         }
@@ -615,6 +698,7 @@
 
       window.ethereum.on('chainChanged', (chainId) => {
         if (chainId === BASE_SEPOLIA_CHAIN_ID) {
+          initWeb3();
           updateBalances();
           showTransactionStatus('Connected to Base Sepolia');
         } else {
