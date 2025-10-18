@@ -421,7 +421,6 @@
     // Web3 Configuration
     const BASE_SEPOLIA_CHAIN_ID = '0x14a34';
     const BASE_SEPOLIA_RPC = 'https://sepolia.base.org';
-    const BASE_TOKEN_ADDRESS = '0x42d3884af08D343F0D41C36598EfE3d5B4c69b01'; // Added BASE token address
     const GAME_COST = '0.001'; // 0.001 ETH
     const TOKEN_REWARDS = {
       '⭐': 1,
@@ -544,25 +543,6 @@
       return currentBalance >= parseFloat(GAME_COST);
     }
 
-    // Send BASE tokens to winner
-    async function sendBaseTokens(tokensWon) {
-      try {
-        showTransactionStatus(`🎉 Sending ${tokensWon} BASE tokens to your wallet...`);
-        
-        // Simulate transaction delay
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
-        // Update token balance
-        userTokenBalance += tokensWon;
-        tokenBalanceElement.textContent = userTokenBalance;
-        
-        return true;
-      } catch (error) {
-        console.error('Error sending BASE tokens:', error);
-        throw error;
-      }
-    }
-
     // Process game payment and rewards
     async function processGameResult(winningSymbol) {
       if (!isConnected) return;
@@ -583,9 +563,8 @@
         } else {
           // Win - add tokens
           const tokensWon = TOKEN_REWARDS[winningSymbol];
-          
-          // Send BASE tokens to winner using the token address
-          await sendBaseTokens(tokensWon);
+          userTokenBalance += tokensWon;
+          tokenBalanceElement.textContent = userTokenBalance;
           
           showTransactionStatus(`🎉 You won ${tokensWon} $BASE tokens! +${tokensWon} $BASE added to your balance`);
         }
