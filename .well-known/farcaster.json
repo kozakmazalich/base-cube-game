@@ -1,32 +1,23 @@
-export const minikitConfig = {
-  accountAssociation: {
-    // ⚠️ Fill these after verifying ownership at https://build.base.org/miniapps
-    header: "",
-    payload: "",
-    signature: "",
+{
+  "accountAssociation": {
+    "header": "",
+    "payload": "",
+    "signature": ""
   },
-
-  miniapp: {
-    version: "1",
-    name: "Base Cube Game",
-    subtitle: "Fun cube game on Base",
-    description: "Play the cube game instantly inside the Base App.",
-    screenshotUrls: [
-      `${ROOT_URL}/screenshot1.png`,
-      `${ROOT_URL}/screenshot2.png`
-    ],
-    iconUrl: `${ROOT_URL}/icon.png`,
-    imageUrl: `${ROOT_URL}/preview.png`,
-    splashImageUrl: `${ROOT_URL}/splash.png`,
-    splashBackgroundColor: "#000000",
-    homeUrl: ROOT_URL,
-    webhookUrl: `${ROOT_URL}/api/webhook`,
-    primaryCategory: "games",
-    tags: ["cube", "game", "baseapp"],
-    heroImageUrl: `${ROOT_URL}/og.png`,
-    tagline: "Jump into the cube world",
-    ogTitle: "Base Cube Game",
-    ogDescription: "Challenge your friends in the cube world inside the Base App.",
-    ogImageUrl: `${ROOT_URL}/og.png`,
+  "baseBuilder": {
+    "allowedAddresses": ["0x0A4e5886f09997a3c71767736bb0c33D43a12B39"]
   },
-} as const;
+  "miniapp": {
+    "version": "1",
+    "name": "Base Cube Game",
+    "subtitle": "Fun cube game on Base",
+    "description": "Play the cube game instantly inside Base App.",
+    "iconUrl": "https://base-cube-game.vercel.app/icon.png",
+    "imageUrl": "https://base-cube-game.vercel.app/preview.png",
+    "splashImageUrl": "https://base-cube-game.vercel.app/splash.png",
+    "splashBackgroundColor": "#000000",
+    "homeUrl": "https://base-cube-game.vercel.app/",
+    "primaryCategory": "games",
+    "tags": ["cube", "game", "baseapp"]
+  }
+}
