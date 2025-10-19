@@ -1,5 +1,3 @@
-const ROOT_URL = "https://base-cube-game.vercel.app";
-
 export const minikitConfig = {
   accountAssociation: {
     // ⚠️ Fill these after verifying ownership at https://build.base.org/miniapps
