@@ -4,6 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Base Cube Game - Win $BASE</title>
+  
+  <!-- Farcaster Frame Meta Tags for Base.dev -->
+  <meta property="fc:frame" content="vNext" />
+  <meta property="fc:frame:image" content="https://i.imgur.com/6wX7Z2y.png" />
+  <meta property="fc:frame:button:1" content="Roll Cube" />
+  <meta property="fc:frame:post_url" content="https://your-app.com/api/frame" />
+  
   <style>
     * {
       margin: 0;
@@ -21,6 +28,7 @@
       position: relative;
       font-family: system-ui, -apple-system, sans-serif;
       gap: 60px;
+      padding: 20px;
     }
 
     /* Пиксельный фон с цветами Base.org */
@@ -39,7 +47,7 @@
     }
 
     .pixel {
-      background: rgba(0, 82, 255, 0.05); /* Base blue */
+      background: rgba(0, 82, 255, 0.05);
       border-radius: 1px;
       aspect-ratio: 1/1;
       animation: pixelGlow 12s infinite ease-in-out;
@@ -91,9 +99,9 @@
       color: white;
       text-shadow: 0 2px 10px rgba(0,0,0,0.3);
       box-shadow: 
-        0 0 25px rgba(0, 82, 255, 0.6), /* Base blue */
+        0 0 25px rgba(0, 82, 255, 0.6),
         inset 0 0 40px rgba(255, 255, 255, 0.15);
-      background: linear-gradient(135deg, rgba(0, 82, 255, 0.9) 0%, rgba(0, 112, 255, 0.9) 100%); /* Base blue gradient */
+      background: linear-gradient(135deg, rgba(0, 82, 255, 0.9) 0%, rgba(0, 112, 255, 0.9) 100%);
       backdrop-filter: blur(8px);
       border: 1px solid rgba(255, 255, 255, 0.2);
     }
@@ -110,7 +118,7 @@
       padding: 16px 40px;
       font-size: 18px;
       font-weight: 600;
-      background: linear-gradient(135deg, #0052FF 0%, #0070FF 100%); /* Base blue gradient */
+      background: linear-gradient(135deg, #0052FF 0%, #0070FF 100%);
       color: white;
       border: none;
       border-radius: 50px;
@@ -304,6 +312,38 @@
       text-align: center;
       max-width: 400px;
     }
+
+    /* Mobile responsiveness */
+    @media (max-width: 768px) {
+      body {
+        flex-direction: column;
+        gap: 30px;
+        padding: 10px;
+      }
+      
+      .scene {
+        width: 150px;
+        height: 150px;
+      }
+      
+      .face {
+        width: 150px;
+        height: 150px;
+        font-size: 40px;
+      }
+      
+      .front  { transform: rotateY(0deg) translateZ(75px); }
+      .back   { transform: rotateY(180deg) translateZ(75px); }
+      .right  { transform: rotateY(90deg) translateZ(75px); }
+      .left   { transform: rotateY(-90deg) translateZ(75px); }
+      .top    { transform: rotateX(90deg) translateZ(75px); }
+      .bottom { transform: rotateX(-90deg) translateZ(75px); }
+      
+      .rewards-table {
+        min-width: 200px;
+        padding: 15px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -350,6 +390,19 @@
   <div class="firework" id="firework"></div>
 
   <script>
+    // Initialize for Base.dev environment
+    function initializeBaseApp() {
+      console.log('Initializing Base Cube Game...');
+      
+      // Check if we're in a Base environment
+      if (typeof window !== 'undefined' && window.parent !== window) {
+        console.log('Running in Base.dev environment');
+        // Base.dev specific initialization can go here
+      }
+      
+      setupGame();
+    }
+
     // Game Configuration
     const TOKEN_REWARDS = {
       '⭐': 1,
@@ -363,228 +416,228 @@
 
     let userTokenBalance = 0;
 
-    // Show transaction status
-    function showTransactionStatus(message) {
-      // Remove existing status
-      const existingStatus = document.querySelector('.transaction-status');
-      if (existingStatus) {
-        existingStatus.remove();
-      }
-      
-      const status = document.createElement('div');
-      status.className = 'transaction-status';
-      status.textContent = message;
-      document.body.appendChild(status);
-      
-      // Auto remove after 5 seconds
-      setTimeout(() => {
-        if (status.parentNode) {
-          status.remove();
+    function setupGame() {
+      // Show transaction status
+      function showTransactionStatus(message) {
+        // Remove existing status
+        const existingStatus = document.querySelector('.transaction-status');
+        if (existingStatus) {
+          existingStatus.remove();
         }
-      }, 5000);
-    }
-
-    // Process game rewards
-    function processGameResult(winningSymbol) {
-      try {
-        showTransactionStatus('Processing game result...');
         
-        // Simulate transaction delay
+        const status = document.createElement('div');
+        status.className = 'transaction-status';
+        status.textContent = message;
+        document.body.appendChild(status);
+        
+        // Auto remove after 5 seconds
         setTimeout(() => {
-          if (winningSymbol === '❌') {
-            showTransactionStatus('Better luck next time! ❌');
-          } else {
-            // Win - add tokens
-            const tokensWon = TOKEN_REWARDS[winningSymbol];
-            userTokenBalance += tokensWon;
-            tokenBalanceElement.textContent = userTokenBalance;
-            
-            showTransactionStatus(`🎉 You won ${tokensWon} $BASE tokens! +${tokensWon} $BASE added to your balance`);
+          if (status.parentNode) {
+            status.remove();
           }
-        }, 2000);
-        
-      } catch (error) {
-        console.error('Error processing game:', error);
-        showTransactionStatus('Error processing game');
+        }, 5000);
       }
-    }
 
-    // Пиксельный фон
-    const pixelBg = document.getElementById('pixelBg');
-    const pixelCount = 1600;
-    
-    for (let i = 0; i < pixelCount; i++) {
-      const pixel = document.createElement('div');
-      pixel.classList.add('pixel');
-      
-      const animationDelay = Math.random() * 15;
-      const animationDuration = 10 + Math.random() * 8;
-      
-      pixel.style.animationDelay = `${animationDelay}s`;
-      pixel.style.animationDuration = `${animationDuration}s`;
-      
-      pixelBg.appendChild(pixel);
-    }
-
-    // Game Logic
-    const cube = document.getElementById('cube');
-    const firework = document.getElementById('firework');
-    
-    let isSpinning = false;
-    
-    // Fixed positions - only 3 winning symbols, 3 losing symbols
-    const winSymbols = ['⭐', '💎', '🏆'];
-    const stopPositions = [
-      { x: 0, y: 0, z: 0, symbol: '🏆' },      // фронт - WIN
-      { x: 0, y: 180, z: 0, symbol: '❌' },    // зад - LOSE
-      { x: 90, y: 0, z: 0, symbol: '❌' },     // верх - LOSE
-      { x: -90, y: 0, z: 0, symbol: '❌' },    // низ - LOSE
-      { x: 0, y: 90, z: 0, symbol: '💎' },     // право - WIN
-      { x: 0, y: -90, z: 0, symbol: '⭐' }      // лево - WIN
-    ];
-    
-    // Функция создания салюта с цветами Base.org
-    function createFirework(x, y) {
-      const colors = ['#0052FF', '#0070FF', '#FFFFFF', '#0088FF', '#E6F0FF', '#B3D4FF'];
-      
-      for (let i = 0; i < 60; i++) {
-        const particle = document.createElement('div');
-        particle.classList.add('particle');
-        
-        const angle = Math.random() * Math.PI * 2;
-        const distance = 80 + Math.random() * 120;
-        const tx = Math.cos(angle) * distance;
-        const ty = Math.sin(angle) * distance;
-        const color = colors[Math.floor(Math.random() * colors.length)];
-        const size = 3 + Math.random() * 4;
-        const duration = 1 + Math.random() * 0.5;
-        
-        particle.style.left = `${x}px`;
-        particle.style.top = `${y}px`;
-        particle.style.width = `${size}px`;
-        particle.style.height = `${size}px`;
-        particle.style.background = color;
-        particle.style.setProperty('--tx', `${tx}px`);
-        particle.style.setProperty('--ty', `${ty}px`);
-        particle.style.animationDuration = `${duration}s`;
-        
-        firework.appendChild(particle);
-        
-        setTimeout(() => {
-          particle.remove();
-        }, duration * 1000);
+      // Process game rewards
+      function processGameResult(winningSymbol) {
+        try {
+          showTransactionStatus('Processing game result...');
+          
+          // Simulate transaction delay
+          setTimeout(() => {
+            if (winningSymbol === '❌') {
+              showTransactionStatus('Better luck next time! ❌');
+            } else {
+              // Win - add tokens
+              const tokensWon = TOKEN_REWARDS[winningSymbol];
+              userTokenBalance += tokensWon;
+              tokenBalanceElement.textContent = userTokenBalance;
+              
+              showTransactionStatus(`🎉 You won ${tokensWon} $BASE tokens! +${tokensWon} $BASE added to your balance`);
+            }
+          }, 2000);
+          
+        } catch (error) {
+          console.error('Error processing game:', error);
+          showTransactionStatus('Error processing game');
+        }
       }
-    }
-    
-    // Функция для запуска салюта со всех сторон
-    function createVictoryFireworks() {
-      const positions = [
-        [window.innerWidth * 0.1, window.innerHeight * 0.1],
-        [window.innerWidth * 0.9, window.innerHeight * 0.1],
-        [window.innerWidth * 0.1, window.innerHeight * 0.9],
-        [window.innerWidth * 0.9, window.innerHeight * 0.9],
-        [window.innerWidth * 0.5, window.innerHeight * 0.1],
-        [window.innerWidth * 0.5, window.innerHeight * 0.9],
-        [window.innerWidth * 0.1, window.innerHeight * 0.5],
-        [window.innerWidth * 0.9, window.innerHeight * 0.5],
-        [window.innerWidth * 0.3, window.innerHeight * 0.3],
-        [window.innerWidth * 0.7, window.innerHeight * 0.3],
-        [window.innerWidth * 0.3, window.innerHeight * 0.7],
-        [window.innerWidth * 0.7, window.innerHeight * 0.7]
+
+      // Пиксельный фон
+      const pixelBg = document.getElementById('pixelBg');
+      const pixelCount = 1600;
+      
+      for (let i = 0; i < pixelCount; i++) {
+        const pixel = document.createElement('div');
+        pixel.classList.add('pixel');
+        
+        const animationDelay = Math.random() * 15;
+        const animationDuration = 10 + Math.random() * 8;
+        
+        pixel.style.animationDelay = `${animationDelay}s`;
+        pixel.style.animationDuration = `${animationDuration}s`;
+        
+        pixelBg.appendChild(pixel);
+      }
+
+      // Game Logic
+      const cube = document.getElementById('cube');
+      const firework = document.getElementById('firework');
+      
+      let isSpinning = false;
+      
+      // Fixed positions - only 3 winning symbols, 3 losing symbols
+      const winSymbols = ['⭐', '💎', '🏆'];
+      const stopPositions = [
+        { x: 0, y: 0, z: 0, symbol: '🏆' },      // фронт - WIN
+        { x: 0, y: 180, z: 0, symbol: '❌' },    // зад - LOSE
+        { x: 90, y: 0, z: 0, symbol: '❌' },     // верх - LOSE
+        { x: -90, y: 0, z: 0, symbol: '❌' },    // низ - LOSE
+        { x: 0, y: 90, z: 0, symbol: '💎' },     // право - WIN
+        { x: 0, y: -90, z: 0, symbol: '⭐' }      // лево - WIN
       ];
       
-      positions.forEach(([x, y], index) => {
-        setTimeout(() => {
-          createFirework(x, y);
-        }, index * 150);
-      });
-    }
-    
-    function spinCube() {
-      if (isSpinning) return;
-      
-      isSpinning = true;
-      rollBtn.disabled = true;
-      
-      // Случайное направление и скорость вращения
-      const startX = Math.random() * 360;
-      const startY = Math.random() * 360;
-      
-      // Случайная конечная позиция
-      const finalPos = stopPositions[Math.floor(Math.random() * stopPositions.length)];
-      
-      let startTime = null;
-      const totalDuration = 4000;
-      const spinDuration = 3000;
-      
-      function animate(currentTime) {
-        if (!startTime) startTime = currentTime;
-        const elapsed = currentTime - startTime;
-        const progress = Math.min(elapsed / totalDuration, 1);
+      // Функция создания салюта с цветами Base.org
+      function createFirework(x, y) {
+        const colors = ['#0052FF', '#0070FF', '#FFFFFF', '#0088FF', '#E6F0FF', '#B3D4FF'];
         
-        if (progress < 0.75) {
-          // Активное вращение
-          const spinProgress = Math.min(elapsed / spinDuration, 1);
-          const easeOut = 1 - Math.pow(1 - spinProgress, 3);
+        for (let i = 0; i < 60; i++) {
+          const particle = document.createElement('div');
+          particle.classList.add('particle');
           
-          const currentX = startX + (720 * easeOut);
-          const currentY = startY + (720 * easeOut);
+          const angle = Math.random() * Math.PI * 2;
+          const distance = 80 + Math.random() * 120;
+          const tx = Math.cos(angle) * distance;
+          const ty = Math.sin(angle) * distance;
+          const color = colors[Math.floor(Math.random() * colors.length)];
+          const size = 3 + Math.random() * 4;
+          const duration = 1 + Math.random() * 0.5;
           
-          cube.style.transform = `rotateX(${currentX}deg) rotateY(${currentY}deg)`;
-        } else {
-          // Замедление
-          const slowProgress = (progress - 0.75) / 0.25;
-          const easeInOut = slowProgress < 0.5 ? 
-            2 * slowProgress * slowProgress : 
-            1 - Math.pow(-2 * slowProgress + 2, 2) / 2;
+          particle.style.left = `${x}px`;
+          particle.style.top = `${y}px`;
+          particle.style.width = `${size}px`;
+          particle.style.height = `${size}px`;
+          particle.style.background = color;
+          particle.style.setProperty('--tx', `${tx}px`);
+          particle.style.setProperty('--ty', `${ty}px`);
+          particle.style.animationDuration = `${duration}s`;
           
-          const currentX = finalPos.x * easeInOut;
-          const currentY = finalPos.y * easeInOut;
+          firework.appendChild(particle);
           
-          cube.style.transform = `rotateX(${currentX}deg) rotateY(${currentY}deg)`;
-        }
-        
-        if (progress < 1) {
-          requestAnimationFrame(animate);
-        } else {
-          // Завершение анимации
-          cube.style.transform = `rotateX(${finalPos.x}deg) rotateY(${finalPos.y}deg)`;
-          
-          const isWinSymbol = winSymbols.includes(finalPos.symbol);
-          
-          if (isWinSymbol) {
-            const faces = cube.getElementsByClassName('face');
-            for (let face of faces) {
-              if (face.textContent === finalPos.symbol) {
-                face.classList.add('win-glow');
-                
-                // Process win
-                processGameResult(finalPos.symbol);
-                createVictoryFireworks();
-                
-                setTimeout(() => {
-                  face.classList.remove('win-glow');
-                }, 2000);
-                break;
-              }
-            }
-          } else {
-            // Process loss
-            processGameResult('❌');
-          }
-          
-          isSpinning = false;
-          rollBtn.disabled = false;
+          setTimeout(() => {
+            particle.remove();
+          }, duration * 1000);
         }
       }
       
-      requestAnimationFrame(animate);
-    }
-    
-    rollBtn.addEventListener('click', spinCube);
+      // Функция для запуска салюта со всех сторон
+      function createVictoryFireworks() {
+        const positions = [
+          [window.innerWidth * 0.1, window.innerHeight * 0.1],
+          [window.innerWidth * 0.9, window.innerHeight * 0.1],
+          [window.innerWidth * 0.1, window.innerHeight * 0.9],
+          [window.innerWidth * 0.9, window.innerHeight * 0.9],
+          [window.innerWidth * 0.5, window.innerHeight * 0.1],
+          [window.innerWidth * 0.5, window.innerHeight * 0.9],
+          [window.innerWidth * 0.1, window.innerHeight * 0.5],
+          [window.innerWidth * 0.9, window.innerHeight * 0.5],
+          [window.innerWidth * 0.3, window.innerHeight * 0.3],
+          [window.innerWidth * 0.7, window.innerHeight * 0.3],
+          [window.innerWidth * 0.3, window.innerHeight * 0.7],
+          [window.innerWidth * 0.7, window.innerHeight * 0.7]
+        ];
+        
+        positions.forEach(([x, y], index) => {
+          setTimeout(() => {
+            createFirework(x, y);
+          }, index * 150);
+        });
+      }
+      
+      function spinCube() {
+        if (isSpinning) return;
+        
+        isSpinning = true;
+        rollBtn.disabled = true;
+        
+        // Случайное направление и скорость вращения
+        const startX = Math.random() * 360;
+        const startY = Math.random() * 360;
+        
+        // Случайная конечная позиция
+        const finalPos = stopPositions[Math.floor(Math.random() * stopPositions.length)];
+        
+        let startTime = null;
+        const totalDuration = 4000;
+        const spinDuration = 3000;
+        
+        function animate(currentTime) {
+          if (!startTime) startTime = currentTime;
+          const elapsed = currentTime - startTime;
+          const progress = Math.min(elapsed / totalDuration, 1);
+          
+          if (progress < 0.75) {
+            // Активное вращение
+            const spinProgress = Math.min(elapsed / spinDuration, 1);
+            const easeOut = 1 - Math.pow(1 - spinProgress, 3);
+            
+            const currentX = startX + (720 * easeOut);
+            const currentY = startY + (720 * easeOut);
+            
+            cube.style.transform = `rotateX(${currentX}deg) rotateY(${currentY}deg)`;
+          } else {
+            // Замедление
+            const slowProgress = (progress - 0.75) / 0.25;
+            const easeInOut = slowProgress < 0.5 ? 
+              2 * slowProgress * slowProgress : 
+              1 - Math.pow(-2 * slowProgress + 2, 2) / 2;
+            
+            const currentX = finalPos.x * easeInOut;
+            const currentY = finalPos.y * easeInOut;
+            
+            cube.style.transform = `rotateX(${currentX}deg) rotateY(${currentY}deg)`;
+          }
+          
+          if (progress < 1) {
+            requestAnimationFrame(animate);
+          } else {
+            // Завершение анимации
+            cube.style.transform = `rotateX(${finalPos.x}deg) rotateY(${finalPos.y}deg)`;
+            
+            const isWinSymbol = winSymbols.includes(finalPos.symbol);
+            
+            if (isWinSymbol) {
+              const faces = cube.getElementsByClassName('face');
+              for (let face of faces) {
+                if (face.textContent === finalPos.symbol) {
+                  face.classList.add('win-glow');
+                  
+                  // Process win
+                  processGameResult(finalPos.symbol);
+                  createVictoryFireworks();
+                  
+                  setTimeout(() => {
+                    face.classList.remove('win-glow');
+                  }, 2000);
+                  break;
+                }
+              }
+            } else {
+              // Process loss
+              processGameResult('❌');
+            }
+            
+            isSpinning = false;
+            rollBtn.disabled = false;
+          }
+        }
+        
+        requestAnimationFrame(animate);
+      }
+      
+      rollBtn.addEventListener('click', spinCube);
 
-    // Плавное появление
-    window.addEventListener('load', () => {
+      // Плавное появление
       cube.style.opacity = '0';
       cube.style.transform = 'rotateX(15deg) rotateY(15deg) scale(0.8)';
       
@@ -593,14 +646,14 @@
         cube.style.opacity = '1';
         cube.style.transform = 'rotateX(15deg) rotateY(15deg) scale(1)';
       }, 300);
-    });
+    }
+
+    // Initialize when DOM is loaded
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initializeBaseApp);
+    } else {
+      initializeBaseApp();
+    }
   </script>
-  <script type="module">
-  import { sdk } from "https://esm.sh/@farcaster/miniapp-sdk";
-
-  // Tell Base that your app is ready to show
-  sdk.actions.ready().catch(console.error);
-</script>
-
 </body>
 </html>
