@@ -1,5 +1,4 @@
-export const minikitConfig = {
-  accountAssociation: { // this will be added in step 5
+ accountAssociation: { // this will be added in step 5
     "header": "",
     "payload": "",
     "signature": ""
