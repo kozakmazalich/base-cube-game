@@ -13,7 +13,7 @@
     "subtitle": "Fun cube game on Base",
     "description": "Play the cube game instantly inside Base App.",
     "iconUrl": "https://base-cube-game.vercel.app/icon.png",
-    "imageUrl": "https://base-cube-game.vercel.app/preview.png",
+    "OG:imageUrl": "https://base-cube-game.vercel.app/preview.png",
     "splashImageUrl": "https://base-cube-game.vercel.app/splash.png",
     "splashBackgroundColor": "#000000",
     "homeUrl": "https://base-cube-game.vercel.app/",
