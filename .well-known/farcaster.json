@@ -5,7 +5,7 @@
     "signature": ""
   },
   "baseBuilder": {
-    "allowedAddresses": ["0xYOUR_BASE_ADDRESS"]
+    "allowedAddresses": ["0x0A4e5886f09997a3c71767736bb0c33D43a12B39"]
   "miniapp": {
   "version": "1",
   "name": "Base Cube Game",
