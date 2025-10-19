@@ -826,5 +826,11 @@
     // Initialize MetaMask check
     checkMetaMask();
   </script>
+  <script type="module">
+  import { sdk } from "https://esm.sh/@farcaster/miniapp-sdk";
+
+  // Tell Base that your app is ready to show
+  sdk.actions.ready().catch(console.error);
+</script>
 </body>
 </html>
