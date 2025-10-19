@@ -1,23 +1,34 @@
- {
-  "accountAssociation": {
-    "header": "eyJmaWQiOjUwMjE3NywidHlwZSI6ImF1dGgiLCJrZXkiOiIweDI4ZTBBZWViNTY5ZjA1RUQ0Y2Y5NmE4M0Y0RjBFMTE1NzdCZTc5MUEifQ",
-    "payload": "eyJkb21haW4iOiJiYXNlLWN1YmUtZ2FtZS52ZXJjZWwuYXBwIn0",
-    "signature": "Ie/qxfZvz3lfh4QuS/XTmMc+tV25r68/1U/er5igcN4VB89MxPlzba4PV3HPMb7AYT1oIIBIF3F99u58xLzx0Bw="
-  }
-  "baseBuilder": {
-    "allowedAddresses": ["0x0A4e5886f09997a3c71767736bb0c33D43a12B39"]
+const ROOT_URL = "https://base-cube-game.vercel.app";
+
+export const minikitConfig = {
+  accountAssociation: {
+    // ⚠️ Fill these after verifying ownership at https://build.base.org/miniapps
+    header: "",
+    payload: "",
+    signature: "",
   },
-  "miniapp": {
-    "version": "1",
-    "name": "Base Cube Game",
-    "subtitle": "Fun cube game on Base",
-    "description": "Play the cube game instantly inside Base App.",
-    "iconUrl": "https://base-cube-game.vercel.app/icon.png",
-    "imageUrl": "https://base-cube-game.vercel.app/preview.png",
-    "splashImageUrl": "https://base-cube-game.vercel.app/splash.png",
-    "splashBackgroundColor": "#000000",
-    "homeUrl": "https://base-cube-game.vercel.app/",
-    "primaryCategory": "games",
-    "tags": ["cube", "game", "baseapp"]
-  }
-}
+
+  miniapp: {
+    version: "1",
+    name: "Base Cube Game",
+    subtitle: "Fun cube game on Base",
+    description: "Play the cube game instantly inside the Base App.",
+    screenshotUrls: [
+      `${ROOT_URL}/screenshot1.png`,
+      `${ROOT_URL}/screenshot2.png`
+    ],
+    iconUrl: `${ROOT_URL}/icon.png`,
+    imageUrl: `${ROOT_URL}/preview.png`,
+    splashImageUrl: `${ROOT_URL}/splash.png`,
+    splashBackgroundColor: "#000000",
+    homeUrl: ROOT_URL,
+    webhookUrl: `${ROOT_URL}/api/webhook`,
+    primaryCategory: "games",
+    tags: ["cube", "game", "baseapp"],
+    heroImageUrl: `${ROOT_URL}/og.png`,
+    tagline: "Jump into the cube world",
+    ogTitle: "Base Cube Game",
+    ogDescription: "Challenge your friends in the cube world inside the Base App.",
+    ogImageUrl: `${ROOT_URL}/og.png`,
+  },
+} as const;
