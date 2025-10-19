@@ -1,6 +1,8 @@
+const ROOT_URL = "https://base-cube-game.vercel.app";
+
 export const minikitConfig = {
   accountAssociation: {
-    // 👇 These values come from https://build.base.org/miniapps after verifying ownership
+    // ⚠️ Fill these after verifying your domain at https://build.base.org/miniapps
     header: "",
     payload: "",
     signature: "",
@@ -10,7 +12,7 @@ export const minikitConfig = {
     version: "1",
     name: "Base Cube Game",
     subtitle: "Fun cube game on Base",
-    description: "Play the cube game instantly inside Base App.",
+    description: "Play the cube game instantly inside the Base App.",
     screenshotUrls: [
       `${ROOT_URL}/screenshot1.png`,
       `${ROOT_URL}/screenshot2.png`
@@ -22,11 +24,12 @@ export const minikitConfig = {
     homeUrl: ROOT_URL,
     webhookUrl: `${ROOT_URL}/api/webhook`,
     primaryCategory: "games",
-    tags: ["game", "cube", "baseapp"],
+    tags: ["cube", "game", "baseapp"],
     heroImageUrl: `${ROOT_URL}/og.png`,
     tagline: "Jump into the cube world",
     ogTitle: "Base Cube Game",
-    ogDescription: "Challenge your friends in the cube world inside Base App.",
+    ogDescription: "Challenge your friends in the cube world inside the Base App.",
     ogImageUrl: `${ROOT_URL}/og.png`,
   },
 } as const;
+
