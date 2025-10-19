@@ -1,24 +1,32 @@
-{
-  "accountAssociation": {
-    "header": "eyJmaWQiOjEwMDAwMDAwMSwidHlwZSI6ImN1c3RvZHkiLCJhZGRyZXNzIjoiMHhBMDR1NTg4NmYwOTk5N2EzYzcxNzY3NzM2YmIwYzMzRDQzYTEyQjM5In0=",
-    "payload": "eyJmaWQiOjEwMDAwMDAwMSwidHlwZSI6ImN1c3RvZHkiLCJhZGRyZXNzIjoiMHhBMDR1NTg4NmYwOTk5N2EzYzcxNzY3NzM2YmIwYzMzRDQzYTEyQjM5In0=",
-    "signature": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234"
+export const minikitConfig = {
+  accountAssociation: {
+    // 👇 These values come from https://build.base.org/miniapps after verifying ownership
+    header: "",
+    payload: "",
+    signature: "",
   },
-  "baseBuilder": {
-    "allowedAddresses": ["0x0A4e5886f09997a3c71767736bb0c33D43a12B39"]
+
+  miniapp: {
+    version: "1",
+    name: "Base Cube Game",
+    subtitle: "Fun cube game on Base",
+    description: "Play the cube game instantly inside Base App.",
+    screenshotUrls: [
+      `${ROOT_URL}/screenshot1.png`,
+      `${ROOT_URL}/screenshot2.png`
+    ],
+    iconUrl: `${ROOT_URL}/icon.png`,
+    imageUrl: `${ROOT_URL}/preview.png`,
+    splashImageUrl: `${ROOT_URL}/splash.png`,
+    splashBackgroundColor: "#000000",
+    homeUrl: ROOT_URL,
+    webhookUrl: `${ROOT_URL}/api/webhook`,
+    primaryCategory: "games",
+    tags: ["game", "cube", "baseapp"],
+    heroImageUrl: `${ROOT_URL}/og.png`,
+    tagline: "Jump into the cube world",
+    ogTitle: "Base Cube Game",
+    ogDescription: "Challenge your friends in the cube world inside Base App.",
+    ogImageUrl: `${ROOT_URL}/og.png`,
   },
-  "miniapp": {
-    "version": "1",
-    "name": "Base Cube Game",
-    "homeUrl": "https://base-cube-game.vercel.app/",
-    "iconUrl": "https://base-cube-game.vercel.app/icon.png",
-    "imageUrl": "https://base-cube-game.vercel.app/preview.png",
-    "splashImageUrl": "https://base-cube-game.vercel.app/splash.png",
-    "splashBackgroundColor": "#0a0e17",
-    "subtitle": "Fun cube game on Base",
-    "description": "Play the cube game instantly inside Base App.",
-    "tags": ["game", "cube", "baseapp"],
-    "webhookUrl": "https://base-cube-game.vercel.app/api/auth",
-    "permissions": ["identity", "storage"]
-  }
-}
+} as const;
