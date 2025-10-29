@@ -560,6 +560,19 @@
 
     async function testContracts() {
       try {
+        // ADD THIS DEBUG CODE:
+    console.log('=== DEBUG CONTRACT INFO ===');
+    
+    // 1. Check if contract is deployed
+    const contractCode = await provider.getCode(GAME_CONTRACT_ADDRESS);
+    console.log('Contract code length:', contractCode.length);
+    if (contractCode === '0x') {
+      console.error('❌ CONTRACT NOT DEPLOYED at address:', GAME_CONTRACT_ADDRESS);
+      showStatus('❌ Contract not deployed! Deploy it first.');
+      return;
+    } else {
+      console.log('✅ Contract is deployed');
+    }
         // Test token contract
         const tokenSymbol = await tokenContract.symbol();
         const gameToken = await gameContract.token();
