@@ -5,11 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Base Cube Game - Win $BASE</title>
   
-  <!-- Farcaster Frame Meta Tags for Base.dev -->
+  <!-- CORRECTED Farcaster Frame Meta Tags -->
   <meta property="fc:frame" content="vNext" />
   <meta property="fc:frame:image" content="https://i.imgur.com/6wX7Z2y.png" />
   <meta property="fc:frame:button:1" content="Roll Cube" />
   <meta property="fc:frame:post_url" content="https://your-app.com/api/frame" />
+  <meta property="og:image" content="https://i.imgur.com/6wX7Z2y.png" />
+  <meta property="og:title" content="Base Cube Game - Win $BASE" />
   
   <style>
     * {
@@ -127,44 +129,6 @@
       transform: none;
     }
 
-    .connect-btn {
-      padding: 12px 24px;
-      font-size: 16px;
-      font-weight: 600;
-      background: linear-gradient(135deg, #0052FF 0%, #0070FF 100%);
-      color: white;
-      border: none;
-      border-radius: 50px;
-      cursor: pointer;
-      box-shadow: 0 8px 20px rgba(0, 82, 255, 0.3);
-      transition: all 0.3s ease;
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      z-index: 1000;
-    }
-
-    .connect-btn.connected {
-      background: linear-gradient(135deg, #00C851 0%, #00E676 100%);
-    }
-
-    .claim-btn {
-      padding: 8px 16px;
-      font-size: 12px;
-      font-weight: 600;
-      background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
-      color: black;
-      border: none;
-      border-radius: 20px;
-      cursor: pointer;
-      margin-top: 5px;
-    }
-
-    .claim-btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-
     .firework {
       position: absolute;
       pointer-events: none;
@@ -252,10 +216,10 @@
       opacity: 0.8;
     }
 
-    .token-balance {
+    .frame-info {
       position: absolute;
       top: 20px;
-      right: 20px;
+      left: 20px;
       z-index: 1000;
       background: rgba(0, 82, 255, 0.1);
       backdrop-filter: blur(10px);
@@ -266,12 +230,6 @@
       font-size: 14px;
       box-shadow: 0 8px 25px rgba(0, 82, 255, 0.2);
       text-align: center;
-    }
-
-    .balance {
-      font-weight: 600;
-      margin-top: 5px;
-      color: #FFD700;
     }
 
     .transaction-status {
@@ -289,20 +247,6 @@
       box-shadow: 0 8px 25px rgba(0, 82, 255, 0.4);
       text-align: center;
       max-width: 400px;
-    }
-
-    .debug-info {
-      position: absolute;
-      bottom: 80px;
-      left: 20px;
-      background: rgba(255, 0, 0, 0.1);
-      backdrop-filter: blur(10px);
-      border-radius: 16px;
-      padding: 15px;
-      border: 1px solid rgba(255, 0, 0, 0.3);
-      color: white;
-      font-size: 12px;
-      max-width: 300px;
     }
 
     @media (max-width: 768px) {
@@ -330,21 +274,9 @@
         min-width: 200px; 
         padding: 15px; 
       }
-      .connect-btn { 
-        position: relative; 
-        top: 0; 
-        left: 0; 
-        margin-bottom: 20px; 
-      }
-      .token-balance {
+      .frame-info {
         position: relative;
         top: 0;
-        right: 0;
-        margin: 20px auto;
-      }
-      .debug-info {
-        position: relative;
-        bottom: 0;
         left: 0;
         margin: 20px auto;
       }
@@ -358,13 +290,9 @@
   </style>
 </head>
 <body>
-  <button class="connect-btn" id="connectBtn">Connect Wallet</button>
-
-  <div class="token-balance">
-    <div>$BASE Balance: <span id="tokenBalance">0</span></div>
-    <div class="balance">Game Balance: <span id="gameBalance">0</span></div>
-    <div class="balance">Last Win: <span id="lastWin">0</span></div>
-    <button class="claim-btn" id="claimBtn" disabled>Claim Rewards</button>
+  <div class="frame-info">
+    🎮 Base Cube Game<br>
+    <small>Roll to win $BASE tokens!</small>
   </div>
 
   <div class="rewards-table">
@@ -398,87 +326,43 @@
       </div>
     </div>
 
-    <button class="roll-btn" id="rollBtn" disabled>ROLL</button>
-    <div class="game-cost">Free to play!</div>
+    <button class="roll-btn" id="rollBtn">ROLL CUBE</button>
+    <div class="game-cost">Free to play in Farcaster Frame!</div>
   </div>
 
   <div class="pixel-bg" id="pixelBg"></div>
   <div class="firework" id="firework"></div>
 
-  <div class="debug-info" id="debugInfo">
-    Contract Status: Checking...
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
-  
   <script>
-    // Contract addresses
-    const TOKEN_CONTRACT_ADDRESS = "0x5183cDE5c8AE1ff27272a7f6d3734355FA81FBD2";
-    const GAME_CONTRACT_ADDRESS = "0xc7757C3Fba8CAd451c0ce25283e5851ba2A7d0A3";  // Updated to new contract
-    
-    const BASE_SEPOLIA_CHAIN_ID = '0x14a34';
-    
-    // DOM Elements
-    const tokenBalanceElement = document.getElementById('tokenBalance');
-    const gameBalanceElement = document.getElementById('gameBalance');
-    const lastWinElement = document.getElementById('lastWin');
-    const rollBtn = document.getElementById('rollBtn');
-    const connectBtn = document.getElementById('connectBtn');
-    const claimBtn = document.getElementById('claimBtn');
-    const debugInfo = document.getElementById('debugInfo');
-
-    let provider, signer, tokenContract, gameContract, userAddress;
-    let tokenDecimals = 18;
-
-    // Cube face mapping - EXACTLY AS YOU SPECIFIED
+    // Cube face mapping
     const cubeFaces = [
-      { symbol: '🏆', reward: 5, position: { x: 0, y: 0 } },      // Front - 5 tokens WIN
-      { symbol: '❌', reward: 0, position: { x: 0, y: 180 } },    // Back - 0 tokens LOSE
-      { symbol: '💎', reward: 3, position: { x: 0, y: 270 } },    // Right - 3 tokens WIN (changed -90 to 270 for positive rotation)
-      { symbol: '⭐', reward: 1, position: { x: 0, y: 90 } },     // Left - 1 token WIN
-      { symbol: '❌', reward: 0, position: { x: 270, y: 0 } },    // Top - 0 tokens LOSE (changed -90 to 270)
-      { symbol: '❌', reward: 0, position: { x: 90, y: 0 } }      // Bottom - 0 tokens LOSE
+      { symbol: '🏆', reward: 5, position: { x: 0, y: 0 } },
+      { symbol: '❌', reward: 0, position: { x: 0, y: 180 } },
+      { symbol: '💎', reward: 3, position: { x: 0, y: 270 } },
+      { symbol: '⭐', reward: 1, position: { x: 0, y: 90 } },
+      { symbol: '❌', reward: 0, position: { x: 270, y: 0 } },
+      { symbol: '❌', reward: 0, position: { x: 90, y: 0 } }
     ];
-
-    // Complete ABI for both contracts
-    const tokenAbi = [
-      "function balanceOf(address) view returns (uint256)",
-      "function decimals() view returns (uint8)",
-      "function symbol() view returns (string)",
-      "function transfer(address to, uint256 amount) returns (bool)",
-      "function approve(address spender, uint256 amount) returns (bool)"
-    ];
-
-    const gameAbi = [
-      "function playGame() returns (uint256)",
-      "function getLastResult(address) view returns (uint256)",
-      "function playerBalance(address) view returns (uint256)",
-      "function claimRewards()",
-      "function token() view returns (address)",
-      "event GamePlayed(address indexed player, uint256 reward)"
-    ];  // Trimmed unused functions like players() and rewards() to match new contract
 
     // Game state
     const gameState = {
       isRolling: false,
-      lastResult: 0,
-      gameBalance: 0,
-      walletBalance: 0
+      totalWins: 0,
+      gamesPlayed: 0
     };
 
     async function initializeGame() {
       setupGameVisuals();
-      connectBtn.addEventListener('click', connectWallet);
-      claimBtn.addEventListener('click', claimRewards);
       
-      if (typeof window.ethereum !== 'undefined') {
-        const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-        if (accounts.length > 0) {
-          await initializeWallet();
-        }
+      const rollBtn = document.getElementById('rollBtn');
+      rollBtn.addEventListener('click', rollCube);
+      
+      // Check if we're in a Farcaster frame
+      if (window.location !== window.parent.location) {
+        showStatus('🎮 Playing in Farcaster Frame');
+      } else {
+        showStatus('🎮 Demo Mode - Connect in Warpcast to play for real!');
       }
-      
-      updateDebugInfo('Ready to connect wallet');
     }
 
     function setupGameVisuals() {
@@ -486,8 +370,10 @@
       const isMobile = window.matchMedia("(max-width: 768px)").matches;
       const gridSize = isMobile ? 20 : 40;
       const pixelCount = gridSize * gridSize;
+      
       pixelBg.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
       pixelBg.style.gridTemplateRows = `repeat(${gridSize}, 1fr)`;
+      
       for (let i = 0; i < pixelCount; i++) {
         const pixel = document.createElement('div');
         pixel.classList.add('pixel');
@@ -507,295 +393,73 @@
       }, 300);
     }
 
-    async function connectWallet() {
-      try {
-        if (typeof window.ethereum === 'undefined') {
-          showStatus('Please install MetaMask!');
-          return;
-        }
-
-        showStatus('Connecting wallet...');
-        await window.ethereum.request({ method: 'eth_requestAccounts' });
-        await initializeWallet();
-        
-      } catch (error) {
-        showStatus('Error: ' + error.message);
-      }
-    }
-
-    async function initializeWallet() {
-      const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-      
-      if (chainId !== BASE_SEPOLIA_CHAIN_ID) {
-        await switchToBaseSepolia();
-        return;
-      }
-
-      provider = new ethers.providers.Web3Provider(window.ethereum);
-      signer = provider.getSigner();
-      userAddress = await signer.getAddress();
-      
-      // Initialize contracts
-      tokenContract = new ethers.Contract(TOKEN_CONTRACT_ADDRESS, tokenAbi, signer);
-      gameContract = new ethers.Contract(GAME_CONTRACT_ADDRESS, gameAbi, signer);
-      
-      // Get token decimals
-      tokenDecimals = await tokenContract.decimals();
-      
-      // Test contract connections
-      await testContracts();
-      
-      connectBtn.textContent = 'Connected';
-      connectBtn.classList.add('connected');
-      rollBtn.disabled = false;
-      
-      await loadBalances();
-      
-      showStatus('✅ Wallet connected! Ready to play.');
-      updateDebugInfo('Contracts connected successfully');
-      
-      window.ethereum.on('accountsChanged', handleAccountsChanged);
-      window.ethereum.on('chainChanged', handleChainChanged);
-    }
-
-    async function testContracts() {
-      try {
-        // ADD THIS DEBUG CODE:
-    console.log('=== DEBUG CONTRACT INFO ===');
-    
-    // 1. Check if contract is deployed
-    const contractCode = await provider.getCode(GAME_CONTRACT_ADDRESS);
-    console.log('Contract code length:', contractCode.length);
-    if (contractCode === '0x') {
-      console.error('❌ CONTRACT NOT DEPLOYED at address:', GAME_CONTRACT_ADDRESS);
-      showStatus('❌ Contract not deployed! Deploy it first.');
-      return;
-    } else {
-      console.log('✅ Contract is deployed');
-    }
-        // Test token contract
-        const tokenSymbol = await tokenContract.symbol();
-        const gameToken = await gameContract.token();
-        
-        updateDebugInfo(`Token: ${tokenSymbol}`);
-        console.log('Game token address:', gameToken);
-        
-        // Check game contract balance
-        const gameBalance = await tokenContract.balanceOf(GAME_CONTRACT_ADDRESS);
-        const gameBalanceFormatted = parseFloat(ethers.utils.formatUnits(gameBalance, tokenDecimals));
-        updateDebugInfo(`Game contract has ${gameBalanceFormatted} tokens`);
-        
-        if (gameBalanceFormatted < 10) {
-          showStatus('⚠️ Game contract low on tokens');
-        }
-        
-      } catch (error) {
-        console.error('Contract test error:', error);
-        updateDebugInfo('Error testing contracts');
-      }
-    }
-
-    async function switchToBaseSepolia() {
-      try {
-        await window.ethereum.request({
-          method: 'wallet_switchEthereumChain',
-          params: [{ chainId: BASE_SEPOLIA_CHAIN_ID }],
-        });
-      } catch (switchError) {
-        if (switchError.code === 4902) {
-          await window.ethereum.request({
-            method: 'wallet_addEthereumChain',
-            params: [{
-              chainId: BASE_SEPOLIA_CHAIN_ID,
-              chainName: 'Base Sepolia',
-              rpcUrls: ['https://sepolia.base.org'],
-              nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
-              blockExplorerUrls: ['https://sepolia.basescan.org'],
-            }],
-          });
-        }
-      }
-    }
-
-    async function loadBalances() {
-      try {
-        // Load wallet token balance
-        const walletBalance = await tokenContract.balanceOf(userAddress);
-        const walletBalanceFormatted = parseFloat(ethers.utils.formatUnits(walletBalance, tokenDecimals));
-        tokenBalanceElement.textContent = walletBalanceFormatted.toFixed(2);
-        gameState.walletBalance = walletBalanceFormatted;
-        
-        // Load game balance for user
-        const gameBalance = await gameContract.playerBalance(userAddress);
-        const gameBalanceFormatted = parseFloat(ethers.utils.formatUnits(gameBalance, tokenDecimals));
-        gameBalanceElement.textContent = gameBalanceFormatted.toFixed(2);
-        gameState.gameBalance = gameBalanceFormatted;
-        
-        // Load last result
-        const lastResult = await gameContract.getLastResult(userAddress);
-        const lastResultFormatted = parseFloat(ethers.utils.formatUnits(lastResult, tokenDecimals));
-        lastWinElement.textContent = lastResultFormatted.toFixed(2);
-        gameState.lastResult = lastResultFormatted;
-        
-        // Enable claim button if there are rewards
-        claimBtn.disabled = gameBalanceFormatted <= 0;
-        
-      } catch (error) {
-        console.error('Balance load error:', error);
-      }
-    }
-
-    function handleAccountsChanged(accounts) {
-      if (accounts.length === 0) {
-        disconnectWallet();
-      } else {
-        userAddress = accounts[0];
-        loadBalances();
-      }
-    }
-
-    function handleChainChanged(chainId) {
-      window.location.reload();
-    }
-
-    function disconnectWallet() {
-      connectBtn.textContent = 'Connect Wallet';
-      connectBtn.classList.remove('connected');
-      tokenBalanceElement.textContent = '0';
-      gameBalanceElement.textContent = '0';
-      lastWinElement.textContent = '0';
-      rollBtn.disabled = true;
-      claimBtn.disabled = true;
-      userAddress = null;
-      showStatus('Wallet disconnected');
-    }
-
-    async function claimRewards() {
-      try {
-        claimBtn.disabled = true;
-        showStatus('Claiming rewards...');
-        
-        const tx = await gameContract.claimRewards({ gasLimit: 100000 });
-        showStatus('Transaction submitted...');
-        
-        const receipt = await tx.wait();
-        console.log('Claim successful:', receipt);
-        
-        showStatus('🎉 Rewards claimed successfully!');
-        await loadBalances();
-        
-      } catch (error) {
-        console.error('Error claiming rewards:', error);
-        showStatus('Error claiming: ' + error.message);
-        claimBtn.disabled = false;
-      }
-    }
-
-    rollBtn.addEventListener('click', async () => {
-      if (!gameContract || gameState.isRolling) return;
+    async function rollCube() {
+      if (gameState.isRolling) return;
 
       gameState.isRolling = true;
+      const rollBtn = document.getElementById('rollBtn');
       rollBtn.disabled = true;
+      
       showStatus('🎲 Rolling cube...');
 
       try {
-        // STEP 1: Play the game on-chain
-        showStatus('🔄 Playing game on-chain...');
-        const tx = await gameContract.playGame({ gasLimit: 200000 });
+        // Simulate game logic - in real implementation, this would call your backend
+        const result = await simulateGamePlay();
         
-        showStatus('⏳ Waiting for confirmation...');
-        const receipt = await tx.wait();
+        // Animate to the result face
+        await animateCubeToFace(result.face);
         
-        // STEP 2: Get the reward from the event (more reliable than view call)
-        let reward = ethers.BigNumber.from(0);
-        for (const log of receipt.logs) {
-          try {
-            const parsedLog = gameContract.interface.parseLog(log);
-            if (parsedLog.name === 'GamePlayed' && parsedLog.args.player.toLowerCase() === userAddress.toLowerCase()) {
-              reward = parsedLog.args.reward;
-              break;
-            }
-          } catch (e) {
-            // Ignore non-matching logs
-          }
-        }
-        
-        if (reward.eq(0)) {
-          // Fallback to view call if event not found (unlikely)
-          reward = await gameContract.getLastResult(userAddress);
-        }
-        
-        const tokensWon = parseFloat(ethers.utils.formatUnits(reward, tokenDecimals));
-        
-        // STEP 3: Determine symbol based on tokens won
-        let actualSymbol = '❌';
-        let actualReward = 0;
-        
-        if (tokensWon === 5) {
-          actualSymbol = '🏆';
-          actualReward = 5;
-        } else if (tokensWon === 3) {
-          actualSymbol = '💎';
-          actualReward = 3;
-        } else if (tokensWon === 1) {
-          actualSymbol = '⭐';
-          actualReward = 1;
-        } else {
-          actualSymbol = '❌';
-          actualReward = 0;
-        }
-        
-        // STEP 4: Find matching face
-        let matchingFaces = cubeFaces.filter(face => face.symbol === actualSymbol && face.reward === actualReward);
-        let selectedFace = matchingFaces[Math.floor(Math.random() * matchingFaces.length)];
-        
-        if (!selectedFace) {
-          selectedFace = cubeFaces.find(face => face.symbol === actualSymbol);
-        }
-        
-        if (!selectedFace) {
-          selectedFace = cubeFaces[Math.floor(Math.random() * cubeFaces.length)];
-        }
-        
-        // STEP 5: Animate to selected face
-        await animateCubeToFace(selectedFace);
-        
-        // STEP 6: Show result message
-        if (tokensWon > 0) {
-          let rewardMessage = '';
-          
-          if (tokensWon === 5) {
-            rewardMessage = `🏆 JACKPOT! You won ${tokensWon} $BASE tokens!`;
-          } else if (tokensWon === 3) {
-            rewardMessage = `💎 Great! You won ${tokensWon} $BASE tokens!`;
-          } else if (tokensWon === 1) {
-            rewardMessage = `⭐ Nice! You won ${tokensWon} $BASE token!`;
-          } else {
-            rewardMessage = `🎉 You won ${tokensWon} $BASE tokens!`;
-          }
-          
-          showStatus(rewardMessage);
+        // Show result
+        if (result.win > 0) {
+          showStatus(`🎉 You won ${result.win} $BASE tokens!`);
           createFireworks();
+          gameState.totalWins += result.win;
         } else {
-          showStatus('❌ Better luck next time! No tokens won.');
+          showStatus('❌ Better luck next time!');
         }
         
-        await loadBalances();
+        gameState.gamesPlayed++;
         
       } catch (error) {
         console.error('Game error:', error);
-        if (error.code === 4001) {
-          showStatus('❌ Transaction cancelled');
-        } else if (error.message.includes('Wait')) {
-          showStatus('⏳ ' + error.message);
-        } else {
-          showStatus('❌ Error: ' + error.message);
-        }
+        showStatus('❌ Error playing game');
       } finally {
         gameState.isRolling = false;
         rollBtn.disabled = false;
       }
-    });
+    }
+
+    // Simulate game play - Replace this with actual backend call
+    async function simulateGamePlay() {
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          // Simple probability: 50% lose, 30% 1 token, 15% 3 tokens, 5% 5 tokens
+          const rand = Math.random();
+          let winningFace;
+          
+          if (rand < 0.5) {
+            // Lose - pick any ❌ face
+            const loseFaces = cubeFaces.filter(face => face.symbol === '❌');
+            winningFace = loseFaces[Math.floor(Math.random() * loseFaces.length)];
+          } else if (rand < 0.8) {
+            // Win 1 token - ⭐
+            winningFace = cubeFaces.find(face => face.symbol === '⭐');
+          } else if (rand < 0.95) {
+            // Win 3 tokens - 💎
+            winningFace = cubeFaces.find(face => face.symbol === '💎');
+          } else {
+            // Jackpot 5 tokens - 🏆
+            winningFace = cubeFaces.find(face => face.symbol === '🏆');
+          }
+          
+          resolve({
+            face: winningFace,
+            win: winningFace.reward,
+            transaction: '0x' + Math.random().toString(16).substr(2, 64) // simulated tx hash
+          });
+        }, 500);
+      });
+    }
 
     function animateCubeToFace(face) {
       return new Promise((resolve) => {
@@ -803,23 +467,16 @@
         let targetX = face.position.x % 360;
         let targetY = face.position.y % 360;
         
-        // Normalize to positive
-        if (targetX < 0) targetX += 360;
-        if (targetY < 0) targetY += 360;
-        
         // Add some random spins before landing on target
-        const spins = 3 + Math.random() * 2; // 3-5 spins
+        const spins = 3 + Math.random() * 2;
         const totalRotation = spins * 360;
         
         const startTime = Date.now();
-        const duration = 2000; // 2 seconds animation
+        const duration = 2000;
         
         function animate() {
           const elapsed = Date.now() - startTime;
           const progress = Math.min(elapsed / duration, 1);
-          
-          // Ease out function for smooth deceleration
-          const easeOut = 1 - Math.pow(1 - progress, 3);
           
           let currentX, currentY;
           if (progress < 0.8) {
@@ -837,7 +494,6 @@
             const adjustX = targetX - (totalRotation % 360);
             const adjustY = targetY - (totalRotation % 360);
             
-            // Normalize adjustment to shortest rotation path (-180 to 180)
             const normAdjustX = ((adjustX + 180) % 360) - 180;
             const normAdjustY = ((adjustY + 180) % 360) - 180;
             
@@ -850,7 +506,7 @@
           if (progress < 1) {
             requestAnimationFrame(animate);
           } else {
-            // Final position, normalized
+            // Final position
             const finalX = targetX + Math.floor(totalRotation / 360) * 360;
             const finalY = targetY + Math.floor(totalRotation / 360) * 360;
             cube.style.transform = `rotateX(${finalX}deg) rotateY(${finalY}deg)`;
@@ -910,10 +566,6 @@
       setTimeout(() => {
         if (status.parentNode) status.remove();
       }, 5000);
-    }
-
-    function updateDebugInfo(message) {
-      debugInfo.textContent = `Debug: ${message}`;
     }
 
     // Initialize game
